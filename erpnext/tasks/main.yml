@@ -7,7 +7,25 @@
 - name: Include OS-specific taks
   include: "{{ ansible_os_family }}.yml"
 
-- name: mysql service state
-  service: name=mysql state=started enabled=yes
+- name: setup fs
+  file: "path={{ item.path }} owner='root' group='root' mode=0755 state=directory"
+  with_items:
+    - path: /srv
 
 
+
+- name: Create erpnext user
+  user:
+      name: erpnext
+      home: "{{ erpnext_home }}"
+
+- name: Clone bench repo 
+  git:
+    repo: 'https://github.com/frappe/bench'
+    dest: "{{ erpnext_home }}bench-repo"
+
+- name: virtualenv and requirements
+  pip:
+    name: "-e bench-repo"
+    chdir: "{{ erpnext_home }}"
+    virtualenv_python: python2.7
